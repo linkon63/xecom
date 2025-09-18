@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function ProfileInfoPage() {
   console.log("hit profile after the login complete");
@@ -50,6 +51,24 @@ export default function ProfileInfoPage() {
     setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
   };
 
+  // handle profile picture change
+  const handleProfilePictureChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/profile/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok)
+      throw new Error(data?.error || "Failed to upload profile picture");
+    setForm((s) => ({ ...s, profilePicture: data.url }));
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -81,6 +100,35 @@ export default function ProfileInfoPage() {
       )}
       {!loading && (
         <form onSubmit={onSubmit} className="grid gap-4">
+          {/* show the profile picture in the circle */}
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+              {form.profilePicture ? (
+                <Image
+                  src={form.profilePicture}
+                  alt="Profile picture"
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="text-gray-400 text-sm">No image</div>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm mb-1" htmlFor="profilePicture">
+                Profile picture
+              </label>
+              <input
+                id="profilePicture"
+                name="profilePicture"
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePictureChange}
+                className="w-full border rounded px-3 py-2"
+              />
+            </div>
+          </div>
           <div>
             <label className="block text-sm mb-1" htmlFor="name">
               Name
@@ -106,7 +154,7 @@ export default function ProfileInfoPage() {
               className="w-full border rounded px-3 py-2"
             />
           </div>
-          <div>
+          {/* <div>
             <label className="block text-sm mb-1" htmlFor="profilePicture">
               Profile picture URL
             </label>
@@ -117,7 +165,7 @@ export default function ProfileInfoPage() {
               onChange={onChange}
               className="w-full border rounded px-3 py-2"
             />
-          </div>
+          </div> */}
           <button
             type="submit"
             disabled={saving}
