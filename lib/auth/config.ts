@@ -3,4 +3,7 @@ export const authConfig = {
         strategy: 'jwt' as const,
     },
     providers: [],
+    pages: {
+        signIn: '/login',
+    },
 }
